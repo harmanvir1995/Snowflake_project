@@ -1,0 +1,71 @@
+// ASSIGNMENT-3 FROM UDEMY CLASS.
+
+-- Creating a warehouse
+CREATE WAREHOUSE EXERCISE_WH
+WITH
+WAREHOUSE_SIZE=XSMALL
+MAX_CLUSTER_COUNT=3
+MIN_CLUSTER_COUNT=1
+AUTO_SUSPEND=600
+AUTO_RESUME=TRUE
+INITIALLY_SUSPENDED=TRUE
+COMMENT= "This database is created in order to do udemy exercises and have some hands on experience on it."
+
+
+-- Creating database
+CREATE OR REPLACE DATABASE EXERCISE_DB;
+
+-- Creating schema 
+CREATE OR REPLACE SCHEMA SCHEMA_EXERCISE;
+
+--Creating the table
+CREATE OR REPLACE TABLE EXERCISE_DB.SCHEMA_EXERCISE.CUSTOMERS (
+    ID INT,
+    FIRST_NAME VARCHAR,
+    LAST_NAME VARCHAR,
+    EMAIL VARCHAR,
+    AGE INT,
+    CITY VARCHAR
+);
+
+--Creating the stage object to store s3 bucket.
+CREATE OR REPLACE STAGE aws_s3bucket
+    url="s3://snowflake-assignments-mc/loadingdata/";
+
+-- Listing all the files present in the aws s3 bucket
+LIST @aws_s3bucket;
+
+--Copying the data from the aws stage into the customers table
+COPY INTO EXERCISE_DB.SCHEMA_EXERCISE.CUSTOMERS  
+    FROM @aws_s3bucket
+    file_format = (type=csv 
+                   field_delimiter=';' 
+                   skip_header=1);
+
+--Selecting the data from the table.
+SELECT * FROM EXERCISE_DB.SCHEMA_EXERCISE.CUSTOMERS;
+
+
+// Assignment-4 from udemy
+CREATE OR REPLACE STAGE aws_2
+url="s3://snowflake-assignments-mc/fileformat/";
+
+-- Creating the file format object inside the database
+CREATE OR REPLACE FILE FORMAT EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format
+type='CSV' field_delimiter='|' skip_header=1;
+
+--Describing the file format object.
+DESC FILE FORMAT EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format;
+
+-- Altering the file formate object but it cannot be alter.
+ALTER FILE FORMAT EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format 
+SET type='csv' field_delimiter='|' skip_header=1;
+
+--Listing the files present in the aws bucket
+LIST @aws_2;
+
+--Copying the data from the aws bucket to the table
+COPY INTO EXERCISE_DB.SCHEMA_EXERCISE.CUSTOMERS
+FROM @aws_2
+file_format = (FORMAT_NAME=EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format);
+    
