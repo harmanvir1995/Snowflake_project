@@ -45,7 +45,7 @@ COPY INTO EXERCISE_DB.SCHEMA_EXERCISE.CUSTOMERS
 --Selecting the data from the table.
 SELECT * FROM EXERCISE_DB.SCHEMA_EXERCISE.CUSTOMERS;
 
-
+-----------------------------------------------------------------------------------------------------------
 // Assignment-4 from udemy
 CREATE OR REPLACE STAGE aws_2
 url="s3://snowflake-assignments-mc/fileformat/";
@@ -68,4 +68,32 @@ LIST @aws_2;
 COPY INTO EXERCISE_DB.SCHEMA_EXERCISE.CUSTOMERS
 FROM @aws_2
 file_format = (FORMAT_NAME=EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format);
-    
+
+-----------------------------------------------------------------------------------------------------------
+--Creating a table 
+CREATE TABLE EXERCISE_DB.SCHEMA_EXERCISE.EMPLOYEES(
+FIRST_NAME VARCHAR(50),
+LAST_NAME VARCHAR(50),
+EMAIL VARCHAR(50),
+AGE INT,
+DEPARTMENT VARCHAR(50)
+);
+
+--Creating the stage object
+CREATE OR REPLACE STAGE EXERCISE_DB.SCHEMA_EXERCISE.aws_3
+url = 's3://snowflake-assignments-mc/copyoptions/example1';
+
+--Listing the files 
+LIST @EXERCISE_DB.SCHEMA_EXERCISE.aws_3;
+
+-- Creating the file format object 
+CREATE OR REPLACE FILE FORMAT EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format_2
+type = 'CSV'
+field_delimiter = ','
+skip_header = 1;
+
+-- Using copy into command to validate if there is any error in the file or not and if there is one then what is the error
+COPY INTO EXERCISE_DB.SCHEMA_EXERCISE.EMPLOYEES
+FROM @EXERCISE_DB.SCHEMA_EXERCISE.aws_3
+FILE_FORMAT = (FORMAT_NAME= 'EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format_2')
+VALIDATION_MODE = RETURN_ERRORS;
