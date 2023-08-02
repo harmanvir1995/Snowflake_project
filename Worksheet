@@ -97,3 +97,64 @@ COPY INTO EXERCISE_DB.SCHEMA_EXERCISE.EMPLOYEES
 FROM @EXERCISE_DB.SCHEMA_EXERCISE.aws_3
 FILE_FORMAT = (FORMAT_NAME= 'EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format_2')
 VALIDATION_MODE = RETURN_ERRORS;
+
+
+-------------------------------------------------------------------------------------
+                                --ASSIGNMENT-7
+-------------------------------------------------------------------------------------
+
+--Creating a stage to point to the specific url
+CREATE OR REPLACE STAGE EXERCISE_DB.SCHEMA_EXERCISE.aws_4
+url = 's3://snowflake-assignments-mc/unstructureddata/';
+
+--Creating a file format object 
+CREATE OR REPLACE FILE FORMAT EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format_3
+type='JSON';
+
+--Creating a table with one coloumn
+CREATE OR REPLACE TABlE EXERCISE_DB.SCHEMA_EXERCISE.JSON_RAW(
+raw VARIANT
+);
+
+--Copying the raw data into the table
+COPY INTO EXERCISE_DB.SCHEMA_EXERCISE.JSON_RAW 
+FROM @EXERCISE_DB.SCHEMA_EXERCISE.aws_4
+FILE_FORMAT = (FORMAT_NAME='EXERCISE_DB.SCHEMA_EXERCISE.aws_file_format_3');
+
+--Selecting data from the tables
+SELECT * FROM EXERCISE_DB.SCHEMA_EXERCISE.JSON_RAW;
+
+
+
+-------------------------------------------------------------------------------------
+                                --ASSIGNMENT-8
+-------------------------------------------------------------------------------------
+
+--Selecting  attributes first_name last_name skills and query these columns.
+SELECT 
+raw:first_name::STRING as firstName,
+raw:last_name::STRING as LastName,
+raw:Skills::STRING as SKILLS
+FROM EXERCISE_DB.SCHEMA_EXERCISE.JSON_RAW;
+
+--Selecting  attributes first_name last_name skills and query these columns.
+SELECT 
+raw:first_name::STRING as FIRSTNAME,
+raw:last_name::STRING as LASTNAME,
+raw:Skills[0]::STRING as SKILL_1,
+raw:Skills[1]::STRING as SKILL_2
+FROM EXERCISE_DB.SCHEMA_EXERCISE.JSON_RAW;
+
+--Creating table and Inserting the values to it as mentioned above in SQL statement
+CREATE OR REPLACE TABLE EXERCISE_DB.SCHEMA_EXERCISE.SKILLS
+AS 
+SELECT
+raw:first_name::STRING as FIRSTNAME,
+raw:last_name::STRING as LASTNAME,
+raw:Skills[0]::STRING as SKILL_1,
+raw:Skills[1]::STRING as SKILL_2
+FROM EXERCISE_DB.SCHEMA_EXERCISE.JSON_RAW;
+
+--Selecting values from the table 
+SELECT * FROM EXERCISE_DB.SCHEMA_EXERCISE.SKILLS;
+
