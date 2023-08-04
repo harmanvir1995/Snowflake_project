@@ -158,3 +158,62 @@ FROM EXERCISE_DB.SCHEMA_EXERCISE.JSON_RAW;
 --Selecting values from the table 
 SELECT * FROM EXERCISE_DB.SCHEMA_EXERCISE.SKILLS;
 
+-----------------------------------------------------------------------------
+--Assignment-9
+--Loading data from the aws s3 bucket using storage integration object
+
+CREATE OR REPLACE STORAGE INTEGRATION S3_INT
+TYPE = EXTERNAL_STAGE
+STORAGE_PROVIDER = S3
+ENABLED = TRUE
+STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::364327004384:role/Snowflake-access-to-s3'
+STORAGE_ALLOWED_LOCATIONS = ('s3://snowflake-testing-udemy/csv/netflix_titles.csv', 's3://snowflake-testing-udemy/json/Musical_Instruments_5.json')
+COMMENT = 'This is the storage integration object created to get data from the s3 bucket using snowflake.';
+
+
+--Describing the object in order to get ARN for the intergration object and put in aws role so that it recoganise the snowflake integration object.
+DESC INTEGRATION S3_INT;
+
+
+--Creating table movie title
+CREATE OR REPLACE TABLE EXERCISE_DB.SCHEMA_EXERCISE.movie_titles(
+show_id STRING,
+type STRING,
+title STRING,
+director STRING,
+cast STRING,
+country STRING,
+date_added STRING,
+release_year STRING,
+rating STRING,
+duration STRING,
+listed_in STRING,
+description STRING);
+
+--Creating file format object
+CREATE OR REPLACE file format EXERCISE_DB.SCHEMA_EXERCISE.aws_private_file_format
+type=CSV
+field_delimiter = ','
+skip_header = 1
+null_if = ('NULL', 'null')
+empty_field_as_null = TRUE
+FIELD_OPTIONALLY_ENCLOSED_BY= '"';
+
+--Creating stag object with integration object and file format object
+CREATE OR REPLACE STAGE EXERCISE_DB.SCHEMA_EXERCISE.aws_private_s3
+URL = 's3://snowflake-testing-udemy/csv/netflix_titles.csv'
+STORAGE_INTEGRATION = s3_int
+FILE_FORMAT = EXERCISE_DB.SCHEMA_EXERCISE.aws_private_file_format;
+
+--Using COPY INTO Command to copy data into the snowflake.
+COPY INTO EXERCISE_DB.SCHEMA_EXERCISE.movie_titles
+FROM @EXERCISE_DB.SCHEMA_EXERCISE.aws_private_s3;
+
+--Selecting all the items from the table
+SELECT * FROM EXERCISE_DB.SCHEMA_EXERCISE.movie_titles;
+
+
+
+select *
+from table(information_schema.query_history_by_session())
+order by start_time;
